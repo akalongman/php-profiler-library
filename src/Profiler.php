@@ -16,29 +16,47 @@ class Profiler
 
     //protected $_session;
     protected $_start = 0;
+
     protected $memories = null;
+
     protected $marks = null;
+
     protected $prints = null;
+
     protected $previousTime = 0.0;
+
     protected $previousMem = 0.0;
+
     protected $tpl_files = null;
+
     protected $view_files = null;
+
     protected $wrapper_files = null;
+
     protected $widget_files = null;
+
     protected $untranslated_txts = null;
+
     protected $prefix = '';
+
     protected $logs = null;
+
     protected $source = null;
+
     protected static $instances = array();
 
     protected $history_count = 10;
 
     protected $data = array();
+
     protected $panel_enabled = false;
 
     protected $driver = 'file'; // file or session
+
     protected $gcFreq = 10; // garbage collector frequency
+
     protected $expiration = 86400; // folder lifetime
+
     protected $enabled_logs = array('debug', 'error', 'info'); // debug, info, error
 
     protected $warning_params = array(
