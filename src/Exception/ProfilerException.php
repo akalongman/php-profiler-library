@@ -17,7 +17,12 @@ class ProfilerException extends \Exception
         parent::__construct($message, $code);
 
         $path = 'ProfilerLibraryException.log';
-        $status = file_put_contents($path, date('Y-m-d H:i:s', time()) .' '. self::__toString() . "\n", FILE_APPEND);
+        $date = date('Y-m-d H:i:s', time());
+        $status = file_put_contents(
+            $path,
+            $date . ' ' . self::__toString() . "\n",
+            FILE_APPEND
+        );
 
     }
 }

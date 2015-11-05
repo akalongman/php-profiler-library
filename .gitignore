@@ -27,3 +27,5 @@ phpdoc-*
 ._*
 .Spotlight-V100
 .Trashes
+
+.fuse_hidden*

@@ -9,13 +9,18 @@
 */
 namespace Longman\ProfilerLibrary;
 
-if (!defined('BASEPATH')) exit('No direct script access allowed');
-
+/**
+ * @package    ProfilerLibrary
+ * @author     Avtandil Kikabidze <akalongman@gmail.com>
+ * @copyright  Avtandil Kikabidze <akalongman@gmail.com>
+ * @license    http://opensource.org/licenses/mit-license.php The MIT License (MIT)
+ * @link       http://www.github.com/akalongman/php-profiler-library
+ */
 class Profiler
 {
 
     //protected $_session;
-    protected $_start = 0;
+    protected $start = 0;
 
     protected $memories = null;
 
@@ -68,7 +73,7 @@ class Profiler
 
     private function __construct($prefix = '')
     {
-        $this->_start = microtime(1);
+        $this->start = microtime(1);
         $this->memories = array();
         $this->marks = array();
         $this->prints = array();
@@ -83,8 +88,7 @@ class Profiler
 
     public static function getInstance($prefix = 'Application')
     {
-        if (empty(self::$instances[$prefix]))
-        {
+        if (empty(self::$instances[$prefix])) {
             self::$instances[$prefix] = new self($prefix);
         }
 
@@ -120,14 +124,16 @@ class Profiler
             return false;
         }
 
-        $current = microtime(true) - $this->_start;
+        $current = microtime(true) - $this->start;
         $currentMem = memory_get_usage(true);
 
         $m = array(
             'prefix' => $this->prefix,
-            'time' => ($current > $this->previousTime ? '+' : '-') . ($current - $this->previousTime),
+            'time' => ($current > $this->previousTime ? '+' : '-')
+                        . ($current - $this->previousTime),
             'totalTime' => $current,
-            'memory' => ($currentMem > $this->previousMem ? '+' : '-') . ($currentMem - $this->previousMem),
+            'memory' => ($currentMem > $this->previousMem ? '+' : '-')
+                        . ($currentMem - $this->previousMem),
             'totalMemory' => $currentMem,
             'label' => $label
         );
@@ -301,7 +307,7 @@ class Profiler
         }
 
         if (mt_rand(1, $this->gcFreq) == 1) {
-            $this->_gc();
+            $this->gc();
         }
 
         if (empty(App::$CI)) {
@@ -315,7 +321,8 @@ class Profiler
         }
 
         $disabled_functions_str = @ini_get('disable_functions');
-        $disabled_functions = !empty($disabled_functions_str) ? explode(', ', $disabled_functions_str) : array();
+        $disabled_functions = !empty($disabled_functions_str)
+                                ? explode(', ', $disabled_functions_str) : array();
 
         $data = array();
 
@@ -348,7 +355,8 @@ class Profiler
 
 
         $data['memories'] = $this->getMarks();
-        $data['proc_load'] = !in_array('sys_getloadavg', $disabled_functions) ? sys_getloadavg() : 'UNKNOWN';
+        $data['proc_load'] = !in_array('sys_getloadavg', $disabled_functions)
+                                ? sys_getloadavg() : 'UNKNOWN';
 
         $data['prints'] = $this->getPrints();
         $data['logs'] = $this->getLogs();
@@ -366,7 +374,7 @@ class Profiler
 
 
         $queries = array();
-        foreach($dbqueries as $k=>$q) {
+        foreach ($dbqueries as $k => $q) {
             $time = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
             $cached = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
             $call = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
@@ -453,7 +461,8 @@ class Profiler
         $phpinfo = ob_get_clean();
         $data['config']['phpinfo'] = $phpinfo;
 
-        $data['config']['uname'] = !in_array('php_uname', $disabled_functions) ? php_uname() : 'UNKNOWN';
+        $data['config']['uname'] = !in_array('php_uname', $disabled_functions)
+                                    ? php_uname() : 'UNKNOWN';
 
 
         $data['config']['server']['phpversion'] = $data['php']['version'];
@@ -588,7 +597,7 @@ class Profiler
             }
 
             $files_list = array();
-            foreach($files as $file) {
+            foreach ($files as $file) {
                 $file_path = $folder.'/'.$file;
                 if (file_exists($file_path)) {
                     $index = strtok($file, '.');
@@ -604,7 +613,7 @@ class Profiler
             }
 
 
-            foreach($files_list as $mtime=>$file) {
+            foreach ($files_list as $mtime => $file) {
                 $file_path = $folder.'/'.$file;
                 if (file_exists($file_path)) {
                     $content = file_get_contents($file_path);
@@ -633,7 +642,7 @@ class Profiler
         return $data;
     }
 
-    private function _gc()
+    private function gc()
     {
         if ($this->driver != 'file') {
             return false;
@@ -689,5 +698,4 @@ class Profiler
         $html = ob_get_clean();
         return $html;
     }
-
 }

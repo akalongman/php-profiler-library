@@ -17,7 +17,7 @@ install:
 
 script:
   - phpunit
-  - sh -c "if [ '$TRAVIS_PHP_VERSION' != '7.0' ]; then vendor/bin/phpcs --report=full --extensions=php -p --standard=build/phpcs .; fi"
+  - sh -c "if [ '$TRAVIS_PHP_VERSION' != '7.0' ]; then vendor/bin/phpcs --report=full --extensions=php -p --standard=build/phpcs/ruleset.xml .; fi"
 
 matrix:
   allow_failures:
