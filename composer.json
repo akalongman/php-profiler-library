@@ -18,7 +18,8 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0"
+        "php": ">=5.5.0",
+        "symfony/filesystem": "~2.7.6"
     },
     "autoload": {
         "psr-4": {
