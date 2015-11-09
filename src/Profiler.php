@@ -6,7 +6,7 @@
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
-*/
+ */
 namespace Longman\ProfilerLibrary;
 
 /**
@@ -65,31 +65,31 @@ class Profiler
     protected $enabled_logs = array('debug', 'error', 'info'); // debug, info, error
 
     protected $warning_params = array(
-            'sql_time' => array('0.1'=>'warning', '0.3'=>'danger'),
-            'page_time' => array('0.2'=>'warning', '0.5'=>'danger'),
-            'page_memory' => array('8'=>'warning', '10'=>'danger')
-        );
+        'sql_time'    => array('0.1' => 'warning', '0.3' => 'danger'),
+        'page_time'   => array('0.2' => 'warning', '0.5' => 'danger'),
+        'page_memory' => array('8' => 'warning', '10' => 'danger'),
+    );
 
     protected $config = [
-                            'debug_mode' => false,
-                            'environment' => 'development',
-                        ];
+        'debug_mode'  => false,
+        'environment' => 'development',
+    ];
 
     private function __construct($prefix, $config)
     {
-        $this->start = microtime(1);
-        $this->memories = array();
-        $this->marks = array();
-        $this->prints = array();
-        $this->tpl_files = array();
-        $this->view_files = array();
-        $this->wrapper_files = array();
+        $this->start             = microtime(1);
+        $this->memories          = array();
+        $this->marks             = array();
+        $this->prints            = array();
+        $this->tpl_files         = array();
+        $this->view_files        = array();
+        $this->wrapper_files     = array();
         $this->untranslated_txts = array();
-        $this->widget_files = array();
-        $this->logs = array();
-        $this->prefix = $prefix;
+        $this->widget_files      = array();
+        $this->logs              = array();
+        $this->prefix            = $prefix;
         if (is_array($config)) {
-            foreach($config as $k=>$v) {
+            foreach ($config as $k => $v) {
                 if (isset($this->config[$k])) {
                     $this->config[$k] = $v;
                 }
@@ -113,7 +113,6 @@ class Profiler
         return $this->warning_params;
     }
 
-
     public function getDebugMode()
     {
         return $this->config['debug_mode'];
@@ -123,8 +122,6 @@ class Profiler
     {
         return $this->config['environment'];
     }
-
-
 
     public function panelEnabled()
     {
@@ -137,18 +134,18 @@ class Profiler
             return false;
         }
 
-        $current = microtime(true) - $this->start;
+        $current    = microtime(true) - $this->start;
         $currentMem = memory_get_usage(true);
 
         $m = array(
-            'prefix' => $this->prefix,
-            'time' => ($current > $this->previousTime ? '+' : '-')
-                        . ($current - $this->previousTime),
-            'totalTime' => $current,
-            'memory' => ($currentMem > $this->previousMem ? '+' : '-')
-                        . ($currentMem - $this->previousMem),
+            'prefix'      => $this->prefix,
+            'time'        => ($current > $this->previousTime ? '+' : '-')
+            . ($current - $this->previousTime),
+            'totalTime'   => $current,
+            'memory'      => ($currentMem > $this->previousMem ? '+' : '-')
+            . ($currentMem - $this->previousMem),
             'totalMemory' => $currentMem,
-            'label' => $label
+            'label'       => $label,
         );
         $this->marks[] = $m;
 
@@ -164,12 +161,10 @@ class Profiler
         //$this->memories[] = $mark;
 
         $this->previousTime = $current;
-        $this->previousMem = $currentMem;
+        $this->previousMem  = $currentMem;
 
         return $mark;
     }
-
-
 
     public function getMarks()
     {
@@ -210,7 +205,6 @@ class Profiler
         return $this;
     }
 
-
     public function addUntranslatedTxt($txt)
     {
         $this->untranslated_txts[] = $txt;
@@ -223,7 +217,7 @@ class Profiler
             return false;
         }
 
-        $log = array();
+        $log        = array();
         $log['msg'] = $message;
 
         $this->logs[$type][] = $log;
@@ -239,39 +233,36 @@ class Profiler
         return $this;
     }
 
-
     public function addPrint($data, $depth = 10, $tabname = null)
     {
         if (!$this->getDebugMode()) {
             return false;
         }
 
-
         /*ob_start();
         if (is_bool($data) || $data === NULL) {
-            var_dump($data);
+        var_dump($data);
         } else if (is_object($data) || is_array($data)) {
-            $data = SystemHelper::clean($data);
-            print_r($data);
+        $data = SystemHelper::clean($data);
+        print_r($data);
         } else {
-            print_r($data);
+        print_r($data);
         }
         $fdata = ob_get_clean();*/
 
-
         $fdata = DumpHelper::getDump($data, $depth, true);
-        $type = DumpHelper::getType();
+        $type  = DumpHelper::getType();
 
         $exception = new Exception();
-        $trace = $exception->getTrace();
-        $curtrace = !empty($trace[1]) ? $trace[1] : array();
-        $file = isset($curtrace['file']) ? $curtrace['file'] : '';
-        $line = isset($curtrace['line']) ? $curtrace['line'] : '';
+        $trace     = $exception->getTrace();
+        $curtrace  = !empty($trace[1]) ? $trace[1] : array();
+        $file      = isset($curtrace['file']) ? $curtrace['file'] : '';
+        $line      = isset($curtrace['line']) ? $curtrace['line'] : '';
 
         $variable = '';
         if (!empty($file)) {
             $lines = @file($file);
-            $ln = $line - 1;
+            $ln    = $line - 1;
             if (!empty($lines[$ln])) {
                 $var_name = preg_match('#p\((.+?)\);#', $lines[$ln], $match);
                 if (!empty($match[1])) {
@@ -280,14 +271,14 @@ class Profiler
             }
         }
 
-        $arr = array();
-        $arr['name'] = $tabname;
-        $arr['data'] = $fdata;
-        $arr['type'] = $type;
-        $arr['file'] = $file;
-        $arr['line'] = $line;
+        $arr             = array();
+        $arr['name']     = $tabname;
+        $arr['data']     = $fdata;
+        $arr['type']     = $type;
+        $arr['file']     = $file;
+        $arr['line']     = $line;
         $arr['variable'] = $variable;
-        $this->prints[] = $arr;
+        $this->prints[]  = $arr;
         //unset($data);
         return $this;
     }
@@ -300,15 +291,14 @@ class Profiler
     public function legalExtension($url)
     {
         $array = array('css', 'js', 'eot', 'woff', 'ttf', 'svg', 'map');
-        $ex = explode('.', $url);
-        $ext = array_pop($ex);
+        $ex    = explode('.', $url);
+        $ext   = array_pop($ex);
 
         if (in_array($ext, $array)) {
             return false;
         }
         return true;
     }
-
 
     public function finish()
     {
@@ -326,7 +316,7 @@ class Profiler
         if (empty(App::$CI)) {
             return false;
         }
-        if (App::$CI->router->class == 'debug') {
+        if ('debug' == App::$CI->router->class) {
             return false;
         }
         if (!empty($this->data)) {
@@ -334,16 +324,16 @@ class Profiler
         }
 
         $disabled_functions_str = @ini_get('disable_functions');
-        $disabled_functions = !empty($disabled_functions_str)
-                                ? explode(', ', $disabled_functions_str) : array();
+        $disabled_functions     = !empty($disabled_functions_str)
+        ? explode(', ', $disabled_functions_str) : array();
 
         $data = array();
 
-        $uniqid = uniqid();
+        $uniqid    = uniqid();
         $microtime = $this->getMicrotime();
 
         $data['microtime'] = $microtime;
-        $data['uniqid'] = $uniqid;
+        $data['uniqid']    = $uniqid;
 
         $data['url'] = current_url();
 
@@ -351,69 +341,58 @@ class Profiler
             return false;
         }
 
-
         if (empty(App::$CI->date)) {
             App::$CI->date = new Date();
         }
 
         $data['user'] = !empty(App::$CI->user) ? App::$CI->user->getData(true, true) : array();
 
-        $data['date'] = App::$CI->date->toSql();
-        $data['ip'] = $_SERVER['REMOTE_ADDR'];
+        $data['date']           = App::$CI->date->toSql();
+        $data['ip']             = $_SERVER['REMOTE_ADDR'];
         $data['request_method'] = $_SERVER['REQUEST_METHOD'];
-        $data['request_type'] = IS_AJAX ? 'ajax' : false;
+        $data['request_type']   = IS_AJAX ? 'ajax' : false;
 
-
-
-
-
-        $data['memories'] = $this->getMarks();
+        $data['memories']  = $this->getMarks();
         $data['proc_load'] = !in_array('sys_getloadavg', $disabled_functions)
-                                ? sys_getloadavg() : 'UNKNOWN';
+        ? sys_getloadavg() : 'UNKNOWN';
 
         $data['prints'] = $this->getPrints();
-        $data['logs'] = $this->getLogs();
+        $data['logs']   = $this->getLogs();
 
-
-        $data['included_files'] = get_included_files();
-        $data['declared_classes'] = get_declared_classes();
+        $data['included_files']    = get_included_files();
+        $data['declared_classes']  = get_declared_classes();
         $data['defined_functions'] = get_defined_functions();
 
         $dbqueries = App::$CI->db->queries;
-        $dbtimes = App::$CI->db->query_times;
-        $dbcaches = App::$CI->db->query_caches;
-        $dbcalls = App::$CI->db->query_calls;
-
-
+        $dbtimes   = App::$CI->db->query_times;
+        $dbcaches  = App::$CI->db->query_caches;
+        $dbcalls   = App::$CI->db->query_calls;
 
         $queries = array();
         foreach ($dbqueries as $k => $q) {
-            $time = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
-            $cached = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
-            $call = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
-            $query = array();
-            $query['query'] = $q;
-            $query['time'] = $time;
+            $time            = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
+            $cached          = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
+            $call            = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
+            $query           = array();
+            $query['query']  = $q;
+            $query['time']   = $time;
             $query['cached'] = $cached;
-            $query['file'] = $call['file'];
-            $query['line'] = $call['line'];
-            $query['stack'] = $call['stack'];
-            $queries[] = $query;
+            $query['file']   = $call['file'];
+            $query['line']   = $call['line'];
+            $query['stack']  = $call['stack'];
+            $queries[]       = $query;
         }
         $data['queries'] = $queries;
 
-
-        $data['txts'] = array();
-        $data['txts']['lang'] = App::$CI->lang_abbr;
+        $data['txts']                 = array();
+        $data['txts']['lang']         = App::$CI->lang_abbr;
         $data['txts']['untranslated'] = $this->untranslated_txts;
 
-
-
-        $data['environment']['post'] = $_POST;
-        $data['environment']['get'] = $_GET;
+        $data['environment']['post']   = $_POST;
+        $data['environment']['get']    = $_GET;
         $data['environment']['cookie'] = $_COOKIE;
         $data['environment']['server'] = $_SERVER;
-        $data['environment']['files'] = $_FILES;
+        $data['environment']['files']  = $_FILES;
 
         // request headers
         if (function_exists('apache_request_headers')) {
@@ -424,12 +403,11 @@ class Profiler
             $requestHeaders = array();
         }
 
-
         // response headers
         $responseHeaders = array();
         foreach (headers_list() as $header) {
             if (($pos = strpos($header, ':')) !== false) {
-                $name = substr($header, 0, $pos);
+                $name  = substr($header, 0, $pos);
                 $value = trim(substr($header, $pos + 1));
                 if (isset($responseHeaders[$name])) {
                     if (!is_array($responseHeaders[$name])) {
@@ -445,66 +423,60 @@ class Profiler
             }
         }
 
-        $data['headers'] = array();
-        $data['headers']['request'] = $requestHeaders;
+        $data['headers']             = array();
+        $data['headers']['request']  = $requestHeaders;
         $data['headers']['response'] = $responseHeaders;
 
         $data['source'] = $this->source;
 
-        $data['controller'] = App::$CI->router->class;
-        $data['method'] = App::$CI->router->method;
-        $data['tpl_files'] = $this->tpl_files;
-        $data['view_files'] = $this->view_files;
+        $data['controller']    = App::$CI->router->class;
+        $data['method']        = App::$CI->router->method;
+        $data['tpl_files']     = $this->tpl_files;
+        $data['view_files']    = $this->view_files;
         $data['wrapper_files'] = $this->wrapper_files;
-        $data['widget_files'] = $this->widget_files;
+        $data['widget_files']  = $this->widget_files;
 
-
-        $data['php']['version'] = @phpversion();
+        $data['php']['version']          = @phpversion();
         $data['mysql']['client_version'] = @mysql_get_client_info();
         $data['mysql']['server_version'] = App::$CI->db->version();
 
         $config = get_config();
 
-
-        $data['config']['main'] = $config;
+        $data['config']['main']    = $config;
         $data['config']['project'] = App::$CI->conf->getData();
 
         ob_start();
         @phpinfo();
-        $phpinfo = ob_get_clean();
+        $phpinfo                   = ob_get_clean();
         $data['config']['phpinfo'] = $phpinfo;
 
         $data['config']['uname'] = !in_array('php_uname', $disabled_functions)
-                                    ? php_uname() : 'UNKNOWN';
-
+        ? php_uname() : 'UNKNOWN';
 
         $data['config']['server']['phpversion'] = $data['php']['version'];
-        $data['config']['server']['xdebug'] = extension_loaded('xdebug');
-        $data['config']['server']['apc'] = extension_loaded('apc');
-        $data['config']['server']['memcached'] = extension_loaded('memcached');
-        $data['config']['server']['curl'] = extension_loaded('curl');
-        $data['config']['server']['mcrypt'] = extension_loaded('mcrypt');
-        $data['config']['server']['gd'] = function_exists('gd_info');
-        $data['config']['server']['mysql'] = function_exists('mysql_connect');
-        $data['config']['server']['pdo'] = class_exists('PDO');
-
-
+        $data['config']['server']['xdebug']     = extension_loaded('xdebug');
+        $data['config']['server']['apc']        = extension_loaded('apc');
+        $data['config']['server']['memcached']  = extension_loaded('memcached');
+        $data['config']['server']['curl']       = extension_loaded('curl');
+        $data['config']['server']['mcrypt']     = extension_loaded('mcrypt');
+        $data['config']['server']['gd']         = function_exists('gd_info');
+        $data['config']['server']['mysql']      = function_exists('mysql_connect');
+        $data['config']['server']['pdo']        = class_exists('PDO');
 
         $data['cms']['version'] = $config['version']['name'];
-        $data['cms']['code'] = $config['version']['code'];
-        $data['cms']['branch'] = $config['branch'];
-
+        $data['cms']['code']    = $config['version']['code'];
+        $data['cms']['branch']  = $config['branch'];
 
         $data['cache'] = array();
         if (!empty(App::$CI->cache_obj)) {
             $data['cache']['adapter'] = App::$CI->cache_obj->getType();
-            $data['cache']['info'] = App::$CI->cache_obj->cache_info();
+            $data['cache']['info']    = App::$CI->cache_obj->cache_info();
             $data['cache']['version'] = App::$CI->cache_obj->getVersion();
         }
 
-        $session_id = App::$CI->session->getId();
+        $session_id         = App::$CI->session->getId();
         $data['session_id'] = $session_id;
-        $this->data = &$data;
+        $this->data         = &$data;
         $this->set($microtime, $data);
         return $this;
     }
@@ -519,10 +491,10 @@ class Profiler
 
     public function set($microtime, $data)
     {
-        if ($this->driver == 'session') {
-            $sesdata = App::$CI->session->get('debug', array());
+        if ('session' == $this->driver) {
+            $sesdata             = App::$CI->session->get('debug', array());
             $sesdata[$microtime] = $data;
-            $count = count($sesdata);
+            $count               = count($sesdata);
             if ($count > $this->history_count) {
                 $sesdata = array_slice($sesdata, $count - $this->history_count);
             }
@@ -533,22 +505,21 @@ class Profiler
                 return false;
             }
 
-            $folder = DATAPATH.'logs/debug/'.$session_id;
+            $folder = DATAPATH . 'logs/debug/' . $session_id;
             if (!FolderHelper::exists($folder)) {
                 $status = FolderHelper::create($folder, 0777);
                 if (!$status) {
                     return false;
                 }
             }
-            $file_name = $microtime.'.data';
-            $data = $this->encode($data);
+            $file_name = $microtime . '.data';
+            $data      = $this->encode($data);
 
-            $status = file_put_contents($folder.'/'.$file_name, $data);
+            $status = file_put_contents($folder . '/' . $file_name, $data);
         }
 
         return $status;
     }
-
 
     public function get($key = 0)
     {
@@ -560,18 +531,18 @@ class Profiler
         }
 
         $data = array();
-        if ($this->driver == 'session') {
+        if ('session' == $this->driver) {
             $data = App::$CI->session->get('debug', array());
         } else {
             $session_id = App::$CI->session->getId();
-            $folder = DATAPATH.'logs/debug/'.$session_id;
-            $files = FolderHelper::files($folder);
+            $folder     = DATAPATH . 'logs/debug/' . $session_id;
+            $files      = FolderHelper::files($folder);
             if (empty($files)) {
                 return array();
             }
 
             if ($key) {
-                $index = array_search($key.'.data', $files);
+                $index = array_search($key . '.data', $files);
                 if (!empty($files[$index])) {
                     $file = $files[$index];
                 }
@@ -579,7 +550,7 @@ class Profiler
                 $file = end($files);
             }
 
-            $file = $folder.'/'.$file;
+            $file = $folder . '/' . $file;
             if (file_exists($file)) {
                 $data = file_get_contents($file);
                 $data = $this->decode($data);
@@ -587,7 +558,6 @@ class Profiler
         }
         return $data;
     }
-
 
     public function getDebugInfo()
     {
@@ -599,38 +569,36 @@ class Profiler
         }
 
         $data = array();
-        if ($this->driver == 'session') {
+        if ('session' == $this->driver) {
             $data = App::$CI->session->get('debug', array());
         } else {
             $session_id = App::$CI->session->getId();
-            $folder = DATAPATH.'logs/debug/'.$session_id;
-            $files = FolderHelper::files($folder);
+            $folder     = DATAPATH . 'logs/debug/' . $session_id;
+            $files      = FolderHelper::files($folder);
             if (empty($files)) {
                 return array();
             }
 
             $files_list = array();
             foreach ($files as $file) {
-                $file_path = $folder.'/'.$file;
+                $file_path = $folder . '/' . $file;
                 if (file_exists($file_path)) {
-                    $index = strtok($file, '.');
+                    $index              = strtok($file, '.');
                     $files_list[$index] = $file;
                 }
             }
 
-
             if ($this->history_count) {
-                $count = count($files_list);
-                $slice = $count > $this->history_count ? $count - $this->history_count : 0;
+                $count      = count($files_list);
+                $slice      = $count > $this->history_count ? $count - $this->history_count : 0;
                 $files_list = array_slice($files_list, $slice, null, true);
             }
 
-
             foreach ($files_list as $mtime => $file) {
-                $file_path = $folder.'/'.$file;
+                $file_path = $folder . '/' . $file;
                 if (file_exists($file_path)) {
-                    $content = file_get_contents($file_path);
-                    $content = $this->decode($content);
+                    $content      = file_get_contents($file_path);
+                    $content      = $this->decode($content);
                     $data[$mtime] = $content;
                 }
             }
@@ -638,8 +606,6 @@ class Profiler
         }
         return $data;
     }
-
-
 
     public function encode($data)
     {
@@ -651,16 +617,15 @@ class Profiler
     {
         $data = json_decode($data, true);
 
-
         return $data;
     }
 
     private function gc()
     {
-        if ($this->driver != 'file') {
+        if ('file' != $this->driver) {
             return false;
         }
-        $folder = DATAPATH.'logs/debug';
+        $folder = DATAPATH . 'logs/debug';
         if (!FolderHelper::exists($folder)) {
             return false;
         }
@@ -677,7 +642,6 @@ class Profiler
             }
         }
     }
-
 
     public function getPanel()
     {
@@ -708,7 +672,7 @@ class Profiler
 
         <iframe src="<?php echo site_url('itdc/debug/panel')?>" id="debug_panel"></iframe>
         <?php
-        $html = ob_get_clean();
+$html = ob_get_clean();
         return $html;
     }
 }
