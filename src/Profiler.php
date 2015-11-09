@@ -61,7 +61,7 @@ class Profiler
 
     protected $driver = 'file'; // file or session
 
-    protected $gcFreq = 10; // garbage collector frequency
+    protected $gcFreq = 1; // garbage collector frequency
 
     protected $expiration = 86400; // folder lifetime
 
@@ -79,8 +79,6 @@ class Profiler
     ];
 
     protected $filesystem = null; // symfony filesystem object
-    protected $finder = null; // symfony finder object
-
 
     private function __construct($prefix, $config)
     {
@@ -103,7 +101,6 @@ class Profiler
             }
         }
         $this->filesystem = new Filesystem();
-        $this->finder = new Finder();
     }
 
     public static function getInstance($prefix = 'Application', array $config = null)
@@ -517,8 +514,7 @@ class Profiler
             if (!$this->filesystem->exists($folder)) {
                 try {
                     $status = $this->filesystem->mkdir($folder, 0777);
-                }
-                catch (IOException $e) {
+                } catch (IOException $e) {
                     trigger_error($e->getMessage());
                     return false;
                 }
@@ -548,17 +544,17 @@ class Profiler
             $session_id = App::$CI->session->getId();
             $folder     = DATAPATH . 'logs/debug/' . $session_id;
 
+            $finder = new Finder();
             $iterator = $finder
-                            ->files()
-                            ->name('*.php')
-                            ->depth(0)
-                            ->size('>= 1K')
-                            ->in(__DIR__);
+                ->files()
+                ->name('*.php')
+                ->depth(0)
+                ->size('>= 1K')
+                ->in(__DIR__);
 
-            $files      = FolderHelper::files($folder);
-              print_r($files);
-              die;
-
+            $files = FolderHelper::files($folder);
+            print_r($files);
+            die;
 
             if (empty($files)) {
                 return array();
@@ -598,28 +594,23 @@ class Profiler
             $session_id = \App::$CI->session->getId();
             $folder     = DATAPATH . 'logs/debug/' . $session_id;
 
+            $finder = new Finder();
 
-            $iterator = $this->finder
-                            ->files()
-                            ->name('*.data')
-                            ->depth(0)
-                            ->in($folder);
+            $iterator = $finder
+                ->files()
+                ->name('*.data')
+                ->depth(0)
+                ->in($folder);
 
-
-            //$files      = \FolderHelper::files($folder);
-
-
-            if (empty($files)) {
+            if ($iterator->count() == 0) {
                 return array();
             }
 
             $files_list = array();
-            foreach ($files as $file) {
-                $file_path = $folder . '/' . $file;
-                if (file_exists($file_path)) {
-                    $index              = strtok($file, '.');
-                    $files_list[$index] = $file;
-                }
+            foreach ($iterator as $file) {
+                $file_path = $file->getRealpath();
+                $name = $file->getFilename();
+                $files_list[$file->getBasename('.data')] = $file;
             }
 
             if ($this->history_count) {
@@ -629,14 +620,15 @@ class Profiler
             }
 
             foreach ($files_list as $mtime => $file) {
-                $file_path = $folder . '/' . $file;
-                if (file_exists($file_path)) {
-                    $content      = file_get_contents($file_path);
-                    $content      = $this->decode($content);
+                try {
+                    $content = $file->getContents();
+                    $content = $this->decode($content);
                     $data[$mtime] = $content;
+                } catch(\RuntimeException $e) {
+                    trigger_error($e->getMessage());
+                    continue;
                 }
             }
-
         }
         return $data;
     }
@@ -660,21 +652,38 @@ class Profiler
             return false;
         }
         $folder = DATAPATH . 'logs/debug';
-        if (!FolderHelper::exists($folder)) {
+        if (!$this->filesystem->exists($folder)) {
             return false;
         }
 
         $expire = time() - $this->expiration;
 
-        $path = new DirectoryIterator($folder);
-        foreach ($path as $file) {
-            if ($file->isDot() || !$file->isDir()) {
-                continue;
-            }
-            if ($file->getMTime() < $expire) {
-                FolderHelper::delete($file->getPathname());
+
+        $finder = new Finder();
+        $iterator = $finder
+            ->directories()
+            ->depth(0)
+            ->in($folder);
+
+        if ($iterator->count()) {
+            foreach ($iterator as $folder) {
+                $path = $folder->getRealpath();
+
+                if (!$this->filesystem->exists($path)) {
+                    continue;
+                }
+
+                if ($folder->getMTime() >= $expire) {
+                    continue;
+                }
+                try {
+                    $this->filesystem->remove($path);
+                } catch (IOException $e) {
+                    trigger_error($e->getMessage());
+                }
             }
         }
+
     }
 
     public function getPanel()
@@ -706,7 +715,7 @@ class Profiler
 
         <iframe src="<?php echo site_url('itdc/debug/panel')?>" id="debug_panel"></iframe>
         <?php
-$html = ob_get_clean();
+        $html = ob_get_clean();
         return $html;
     }
 }
