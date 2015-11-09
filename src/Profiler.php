@@ -70,8 +70,12 @@ class Profiler
             'page_memory' => array('8'=>'warning', '10'=>'danger')
         );
 
+    protected $config = [
+                            'debug_mode' => false,
+                            'environment' => 'development',
+                        ];
 
-    private function __construct($prefix = '')
+    private function __construct($prefix, $config)
     {
         $this->start = microtime(1);
         $this->memories = array();
@@ -84,12 +88,21 @@ class Profiler
         $this->widget_files = array();
         $this->logs = array();
         $this->prefix = $prefix;
+        if (is_array($config)) {
+            foreach($config as $k=>$v) {
+                if (isset($this->config[$k])) {
+                    $this->config[$k] = $v;
+                }
+            }
+        }
+
     }
 
-    public static function getInstance($prefix = 'Application')
+    public static function getInstance($prefix = 'Application', array $config = null)
     {
+
         if (empty(self::$instances[$prefix])) {
-            self::$instances[$prefix] = new self($prefix);
+            self::$instances[$prefix] = new self($prefix, $config);
         }
 
         return self::$instances[$prefix];
@@ -97,16 +110,28 @@ class Profiler
 
     public function getWarningParams()
     {
-        return  $this->warning_params;
+        return $this->warning_params;
     }
+
+
+    public function getDebugMode()
+    {
+        return $this->config['debug_mode'];
+    }
+
+    public function getEnvironment()
+    {
+        return $this->config['environment'];
+    }
+
 
 
     public function panelEnabled()
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
-        if (ENVIRONMENT == 'testing') {
+        if ($this->getEnvironment() == 'testing') {
             return false;
         }
         if (empty(App::$CI)) {
@@ -120,7 +145,7 @@ class Profiler
 
     public function mark($label)
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
 
@@ -219,7 +244,7 @@ class Profiler
 
     public function addSource($html)
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
         $this->source = $html;
@@ -229,7 +254,7 @@ class Profiler
 
     public function addPrint($data, $depth = 10, $tabname = null)
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
 
@@ -299,10 +324,10 @@ class Profiler
 
     public function finish()
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
-        if (ENVIRONMENT == 'testing') {
+        if ($this->getEnvironment() == 'testing') {
             return false;
         }
 
@@ -539,7 +564,7 @@ class Profiler
 
     public function get($key = 0)
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
         if (empty(App::$CI)) {
@@ -578,7 +603,7 @@ class Profiler
 
     public function getDebugInfo()
     {
-        if (!DEBUG_MODE) {
+        if (!$this->getDebugMode()) {
             return false;
         }
         if (empty(App::$CI)) {
