@@ -9,6 +9,9 @@
  */
 namespace Longman\ProfilerLibrary;
 
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
+
 /**
  * @package    ProfilerLibrary
  * @author     Avtandil Kikabidze <akalongman@gmail.com>
@@ -75,6 +78,10 @@ class Profiler
         'environment' => 'development',
     ];
 
+    protected $filesystem = null; // symfony filesystem object
+    protected $finder = null; // symfony finder object
+
+
     private function __construct($prefix, $config)
     {
         $this->start             = microtime(1);
@@ -95,7 +102,8 @@ class Profiler
                 }
             }
         }
-
+        $this->filesystem = new Filesystem();
+        $this->finder = new Finder();
     }
 
     public static function getInstance($prefix = 'Application', array $config = null)
@@ -313,10 +321,10 @@ class Profiler
             $this->gc();
         }
 
-        if (empty(App::$CI)) {
+        if (empty(\App::$CI)) {
             return false;
         }
-        if ('debug' == App::$CI->router->class) {
+        if ('debug' == \App::$CI->router->class) {
             return false;
         }
         if (!empty($this->data)) {
@@ -341,13 +349,13 @@ class Profiler
             return false;
         }
 
-        if (empty(App::$CI->date)) {
-            App::$CI->date = new Date();
+        if (empty(\App::$CI->date)) {
+            \App::$CI->date = new Date();
         }
 
-        $data['user'] = !empty(App::$CI->user) ? App::$CI->user->getData(true, true) : array();
+        $data['user'] = !empty(\App::$CI->user) ? \App::$CI->user->getData(true, true) : array();
 
-        $data['date']           = App::$CI->date->toSql();
+        $data['date']           = \App::$CI->date->toSql();
         $data['ip']             = $_SERVER['REMOTE_ADDR'];
         $data['request_method'] = $_SERVER['REQUEST_METHOD'];
         $data['request_type']   = IS_AJAX ? 'ajax' : false;
@@ -363,10 +371,10 @@ class Profiler
         $data['declared_classes']  = get_declared_classes();
         $data['defined_functions'] = get_defined_functions();
 
-        $dbqueries = App::$CI->db->queries;
-        $dbtimes   = App::$CI->db->query_times;
-        $dbcaches  = App::$CI->db->query_caches;
-        $dbcalls   = App::$CI->db->query_calls;
+        $dbqueries = \App::$CI->db->queries;
+        $dbtimes   = \App::$CI->db->query_times;
+        $dbcaches  = \App::$CI->db->query_caches;
+        $dbcalls   = \App::$CI->db->query_calls;
 
         $queries = array();
         foreach ($dbqueries as $k => $q) {
@@ -385,7 +393,7 @@ class Profiler
         $data['queries'] = $queries;
 
         $data['txts']                 = array();
-        $data['txts']['lang']         = App::$CI->lang_abbr;
+        $data['txts']['lang']         = \App::$CI->lang_abbr;
         $data['txts']['untranslated'] = $this->untranslated_txts;
 
         $data['environment']['post']   = $_POST;
@@ -429,8 +437,8 @@ class Profiler
 
         $data['source'] = $this->source;
 
-        $data['controller']    = App::$CI->router->class;
-        $data['method']        = App::$CI->router->method;
+        $data['controller']    = \App::$CI->router->class;
+        $data['method']        = \App::$CI->router->method;
         $data['tpl_files']     = $this->tpl_files;
         $data['view_files']    = $this->view_files;
         $data['wrapper_files'] = $this->wrapper_files;
@@ -438,12 +446,12 @@ class Profiler
 
         $data['php']['version']          = @phpversion();
         $data['mysql']['client_version'] = @mysql_get_client_info();
-        $data['mysql']['server_version'] = App::$CI->db->version();
+        $data['mysql']['server_version'] = \App::$CI->db->version();
 
         $config = get_config();
 
         $data['config']['main']    = $config;
-        $data['config']['project'] = App::$CI->conf->getData();
+        $data['config']['project'] = \App::$CI->conf->getData();
 
         ob_start();
         @phpinfo();
@@ -469,12 +477,12 @@ class Profiler
 
         $data['cache'] = array();
         if (!empty(App::$CI->cache_obj)) {
-            $data['cache']['adapter'] = App::$CI->cache_obj->getType();
-            $data['cache']['info']    = App::$CI->cache_obj->cache_info();
-            $data['cache']['version'] = App::$CI->cache_obj->getVersion();
+            $data['cache']['adapter'] = \App::$CI->cache_obj->getType();
+            $data['cache']['info']    = \App::$CI->cache_obj->cache_info();
+            $data['cache']['version'] = \App::$CI->cache_obj->getVersion();
         }
 
-        $session_id         = App::$CI->session->getId();
+        $session_id         = \App::$CI->session->getId();
         $data['session_id'] = $session_id;
         $this->data         = &$data;
         $this->set($microtime, $data);
@@ -492,23 +500,26 @@ class Profiler
     public function set($microtime, $data)
     {
         if ('session' == $this->driver) {
-            $sesdata             = App::$CI->session->get('debug', array());
+            $sesdata             = \App::$CI->session->get('debug', array());
             $sesdata[$microtime] = $data;
             $count               = count($sesdata);
             if ($count > $this->history_count) {
                 $sesdata = array_slice($sesdata, $count - $this->history_count);
             }
-            $status = App::$CI->session->set('debug', $sesdata);
+            $status = \App::$CI->session->set('debug', $sesdata);
         } else {
-            $session_id = App::$CI->session->getId();
+            $session_id = \App::$CI->session->getId();
             if (empty($session_id)) {
                 return false;
             }
 
             $folder = DATAPATH . 'logs/debug/' . $session_id;
-            if (!FolderHelper::exists($folder)) {
-                $status = FolderHelper::create($folder, 0777);
-                if (!$status) {
+            if (!$this->filesystem->exists($folder)) {
+                try {
+                    $status = $this->filesystem->mkdir($folder, 0777);
+                }
+                catch (IOException $e) {
+                    trigger_error($e->getMessage());
                     return false;
                 }
             }
@@ -536,7 +547,19 @@ class Profiler
         } else {
             $session_id = App::$CI->session->getId();
             $folder     = DATAPATH . 'logs/debug/' . $session_id;
+
+            $iterator = $finder
+                            ->files()
+                            ->name('*.php')
+                            ->depth(0)
+                            ->size('>= 1K')
+                            ->in(__DIR__);
+
             $files      = FolderHelper::files($folder);
+              print_r($files);
+              die;
+
+
             if (empty($files)) {
                 return array();
             }
@@ -564,17 +587,28 @@ class Profiler
         if (!$this->getDebugMode()) {
             return false;
         }
-        if (empty(App::$CI)) {
+        if (empty(\App::$CI)) {
             return false;
         }
 
         $data = array();
         if ('session' == $this->driver) {
-            $data = App::$CI->session->get('debug', array());
+            $data = \App::$CI->session->get('debug', array());
         } else {
-            $session_id = App::$CI->session->getId();
+            $session_id = \App::$CI->session->getId();
             $folder     = DATAPATH . 'logs/debug/' . $session_id;
-            $files      = FolderHelper::files($folder);
+
+
+            $iterator = $this->finder
+                            ->files()
+                            ->name('*.data')
+                            ->depth(0)
+                            ->in($folder);
+
+
+            //$files      = \FolderHelper::files($folder);
+
+
             if (empty($files)) {
                 return array();
             }
