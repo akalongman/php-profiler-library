@@ -128,18 +128,6 @@ class Profiler
 
     public function panelEnabled()
     {
-        if (!$this->getDebugMode()) {
-            return false;
-        }
-        if ($this->getEnvironment() == 'testing') {
-            return false;
-        }
-        if (empty(App::$CI)) {
-            return false;
-        }
-        if (App::$CI->router->class == 'debug') {
-            return false;
-        }
         return $this->panel_enabled;
     }
 
