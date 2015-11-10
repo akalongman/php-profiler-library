@@ -244,21 +244,11 @@ class Profiler
             return false;
         }
 
-        /*ob_start();
-        if (is_bool($data) || $data === NULL) {
-        var_dump($data);
-        } else if (is_object($data) || is_array($data)) {
-        $data = SystemHelper::clean($data);
-        print_r($data);
-        } else {
-        print_r($data);
-        }
-        $fdata = ob_get_clean();*/
 
-        $fdata = DumpHelper::getDump($data, $depth, true);
-        $type  = DumpHelper::getType();
+        $fdata = Dumper::getDump($data, $depth, true);
+        $type  = Dumper::getType();
 
-        $exception = new Exception();
+        $exception = new \Exception();
         $trace     = $exception->getTrace();
         $curtrace  = !empty($trace[1]) ? $trace[1] : array();
         $file      = isset($curtrace['file']) ? $curtrace['file'] : '';
@@ -473,7 +463,7 @@ class Profiler
         $data['cms']['branch']  = $config['branch'];
 
         $data['cache'] = array();
-        if (!empty(App::$CI->cache_obj)) {
+        if (!empty(\App::$CI->cache_obj)) {
             $data['cache']['adapter'] = \App::$CI->cache_obj->getType();
             $data['cache']['info']    = \App::$CI->cache_obj->cache_info();
             $data['cache']['version'] = \App::$CI->cache_obj->getVersion();
@@ -490,7 +480,7 @@ class Profiler
     {
         $microtime = microtime(true);
         $microtime = str_replace(array(',', '.'), '', $microtime);
-        $microtime = MathHelper::addZeros($microtime, 15, 'right');
+        $microtime = $this->addZeros($microtime, 15, 'right');
         return $microtime;
     }
 
@@ -528,37 +518,37 @@ class Profiler
         return $status;
     }
 
-    public function get($key = 0)
+/*    public function get($key = 0)
     {
         if (!$this->getDebugMode()) {
             return false;
         }
-        if (empty(App::$CI)) {
+        if (empty(\App::$CI)) {
             return false;
         }
 
         $data = array();
         if ('session' == $this->driver) {
-            $data = App::$CI->session->get('debug', array());
+            $data = \App::$CI->session->get('debug', array());
         } else {
             $session_id = App::$CI->session->getId();
             $folder     = DATAPATH . 'logs/debug/' . $session_id;
 
             $finder = new Finder();
+
             $iterator = $finder
                 ->files()
-                ->name('*.php')
+                ->name('*.data')
                 ->depth(0)
-                ->size('>= 1K')
-                ->in(__DIR__);
+                ->in($folder);
 
-            $files = FolderHelper::files($folder);
-            print_r($files);
-            die;
-
-            if (empty($files)) {
+            if ($iterator->count() == 0) {
                 return array();
             }
+  var_dump($iterator);
+  die;
+
+            $files = $iterator->toArray();
 
             if ($key) {
                 $index = array_search($key . '.data', $files);
@@ -576,7 +566,7 @@ class Profiler
             }
         }
         return $data;
-    }
+    }*/
 
     public function getDebugInfo()
     {
@@ -685,6 +675,19 @@ class Profiler
         }
 
     }
+
+    protected function addZeros($value, $final_length = 2, $dir = 'left')
+    {
+        $length = strlen($value);
+        if ($length >= $final_length) {
+            return $value;
+        }
+        $diff = $final_length - $length;
+        $value = $dir == 'left' ? str_repeat('0', $diff).$value : $value.str_repeat('0', $diff);
+        return $value;
+    }
+
+
 
     public function getPanel()
     {
