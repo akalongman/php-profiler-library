@@ -337,7 +337,7 @@ class Profiler
         }
 
         if (empty(\App::$CI->date)) {
-            \App::$CI->date = new Date();
+            \App::$CI->date = new \Date();
         }
 
         $data['user'] = !empty(\App::$CI->user) ? \App::$CI->user->getData(true, true) : array();
