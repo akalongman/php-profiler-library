@@ -4,9 +4,108 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a296d341cee36cbb822d4df1eb00ce42",
-    "content-hash": "06410637f70c1ea978fbe72f2e248de9",
-    "packages": [],
+    "hash": "8672181759038e41fa971225cf7ed4d2",
+    "content-hash": "cb75297cd01e947216a6696db03e26ce",
+    "packages": [
+        {
+            "name": "symfony/filesystem",
+            "version": "2.7.x-dev",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/filesystem.git",
+                "reference": "419d91fa90f5e8aa80eddc933d8172ef76aa2102"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/419d91fa90f5e8aa80eddc933d8172ef76aa2102",
+                "reference": "419d91fa90f5e8aa80eddc933d8172ef76aa2102",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Filesystem\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Filesystem Component",
+            "homepage": "https://symfony.com",
+            "time": "2015-10-30 20:10:21"
+        },
+        {
+            "name": "symfony/finder",
+            "version": "2.7.x-dev",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/finder.git",
+                "reference": "a06a0c0ff7db3736a50d530c908cca547bf13da9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/a06a0c0ff7db3736a50d530c908cca547bf13da9",
+                "reference": "a06a0c0ff7db3736a50d530c908cca547bf13da9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Finder\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Finder Component",
+            "homepage": "https://symfony.com",
+            "time": "2015-10-30 20:10:21"
+        }
+    ],
     "packages-dev": [
         {
             "name": "doctrine/instantiator",
@@ -1103,12 +1202,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "58098cc00d7cd7e2a9693451066af0d237a2f33a"
+                "reference": "56cd0ec9b4a7f08a7fd66b57e8f938b1e488d301"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/58098cc00d7cd7e2a9693451066af0d237a2f33a",
-                "reference": "58098cc00d7cd7e2a9693451066af0d237a2f33a",
+                "url": "https://api.github.com/repos/symfony/console/zipball/56cd0ec9b4a7f08a7fd66b57e8f938b1e488d301",
+                "reference": "56cd0ec9b4a7f08a7fd66b57e8f938b1e488d301",
                 "shasum": ""
             },
             "require": {
@@ -1155,7 +1254,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2015-11-02 20:34:04"
+            "time": "2015-11-05 14:03:06"
         },
         {
             "name": "symfony/event-dispatcher",
@@ -1214,55 +1313,6 @@
                 }
             ],
             "description": "Symfony EventDispatcher Component",
-            "homepage": "https://symfony.com",
-            "time": "2015-10-30 23:35:59"
-        },
-        {
-            "name": "symfony/finder",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/finder.git",
-                "reference": "3577eb98dba90721d1a0a3edfc6956ab8b1aecee"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/3577eb98dba90721d1a0a3edfc6956ab8b1aecee",
-                "reference": "3577eb98dba90721d1a0a3edfc6956ab8b1aecee",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.5.9"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Finder\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony Finder Component",
             "homepage": "https://symfony.com",
             "time": "2015-10-30 23:35:59"
         },
@@ -1377,12 +1427,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "29dee11bd37eae3de68b5113dc4b84dc8e2b786e"
+                "reference": "1fac4249ca3ea5949685fe36ca1eaceac19fd906"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/29dee11bd37eae3de68b5113dc4b84dc8e2b786e",
-                "reference": "29dee11bd37eae3de68b5113dc4b84dc8e2b786e",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/1fac4249ca3ea5949685fe36ca1eaceac19fd906",
+                "reference": "1fac4249ca3ea5949685fe36ca1eaceac19fd906",
                 "shasum": ""
             },
             "require": {
@@ -1418,7 +1468,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2015-11-02 20:34:04"
+            "time": "2015-11-09 10:46:27"
         }
     ],
     "aliases": [],
@@ -1427,7 +1477,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.3.0"
+        "php": ">=5.5.0"
     },
     "platform-dev": []
 }

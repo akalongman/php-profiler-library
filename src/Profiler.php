@@ -614,7 +614,7 @@ class Profiler
                     $content = $file->getContents();
                     $content = $this->decode($content);
                     $data[$mtime] = $content;
-                } catch(\RuntimeException $e) {
+                } catch (\RuntimeException $e) {
                     trigger_error($e->getMessage());
                     continue;
                 }
