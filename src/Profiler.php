@@ -11,6 +11,7 @@ namespace Longman\ProfilerLibrary;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Filesystem\Exception\IOException;
 
 /**
  * @package    ProfilerLibrary
@@ -669,7 +670,8 @@ class Profiler
                 try {
                     $this->filesystem->remove($path);
                 } catch (IOException $e) {
-                    trigger_error($e->getMessage());
+                    //trigger_error($e->getMessage());
+                    // do nothing
                 }
             }
         }
