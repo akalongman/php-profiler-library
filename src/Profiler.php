@@ -77,6 +77,7 @@ class Profiler
     protected $config = [
         'debug_mode'  => false,
         'environment' => 'development',
+        'logdata_path' => '',
     ];
 
     protected $filesystem = null; // symfony filesystem object
@@ -94,14 +95,10 @@ class Profiler
         $this->widget_files      = array();
         $this->logs              = array();
         $this->prefix            = $prefix;
-        if (is_array($config)) {
-            foreach ($config as $k => $v) {
-                if (isset($this->config[$k])) {
-                    $this->config[$k] = $v;
-                }
-            }
-        }
         $this->filesystem = new Filesystem();
+        if ($config) {
+            $this->setConfig($config);
+        }
     }
 
     public static function getInstance($prefix = 'Application', array $config = null)
@@ -113,6 +110,19 @@ class Profiler
 
         return self::$instances[$prefix];
     }
+
+    public function setConfig($config)
+    {
+        if (is_array($config)) {
+            foreach ($config as $k => $v) {
+                if (isset($this->config[$k])) {
+                    $this->config[$k] = $v;
+                }
+            }
+        }
+        return $this;
+    }
+
 
     public function getWarningParams()
     {
@@ -127,6 +137,11 @@ class Profiler
     public function getEnvironment()
     {
         return $this->config['environment'];
+    }
+
+    public function getLogdataPath()
+    {
+        return $this->config['logdata_path'];
     }
 
     public function panelEnabled()
@@ -500,8 +515,14 @@ class Profiler
             if (empty($session_id)) {
                 return false;
             }
+            $logdata_path = $this->getLogdataPath();
+            if (!$logdata_path) {
+                trigger_error('Log data path is empty!');
+                return false;
+            }
 
-            $folder = DATAPATH . 'logs/debug/' . $session_id;
+
+            $folder = $logdata_path . '/debug/' . $session_id;
             if (!$this->filesystem->exists($folder)) {
                 try {
                     $status = $this->filesystem->mkdir($folder, 0777);
@@ -583,7 +604,14 @@ class Profiler
             $data = \App::$CI->session->get('debug', array());
         } else {
             $session_id = \App::$CI->session->getId();
-            $folder     = DATAPATH . 'logs/debug/' . $session_id;
+
+            $logdata_path = $this->getLogdataPath();
+            if (!$logdata_path) {
+                trigger_error('Log data path is empty!');
+                return false;
+            }
+
+            $folder     = $logdata_path . '/debug/' . $session_id;
 
             $finder = new Finder();
 
@@ -642,7 +670,14 @@ class Profiler
         if ('file' != $this->driver) {
             return false;
         }
-        $folder = DATAPATH . 'logs/debug';
+
+        $logdata_path = $this->getLogdataPath();
+        if (!$logdata_path) {
+            trigger_error('Log data path is empty!');
+            return false;
+        }
+
+        $folder = $logdata_path . '/debug';
         if (!$this->filesystem->exists($folder)) {
             return false;
         }
