@@ -346,22 +346,18 @@ class Profiler
         $data['microtime'] = $microtime;
         $data['uniqid']    = $uniqid;
 
-        $data['url'] = current_url();
+        $data['url'] = is_callable('\current_url') ? \current_url() : 'unknown';
 
         if (!$this->legalExtension($data['url'])) {
             return false;
         }
 
-        if (empty(\App::$CI->date)) {
-            \App::$CI->date = new \Date();
-        }
-
         $data['user'] = !empty(\App::$CI->user) ? \App::$CI->user->getData(true, true) : array();
 
-        $data['date']           = \App::$CI->date->toSql();
+        $data['date']           = (new \DateTime())->format('Y-m-d H:i:s');
         $data['ip']             = $_SERVER['REMOTE_ADDR'];
         $data['request_method'] = $_SERVER['REQUEST_METHOD'];
-        $data['request_type']   = IS_AJAX ? 'ajax' : false;
+        $data['request_type']   = defined('\IS_AJAX') && \IS_AJAX ? 'ajax' : false;
 
         $data['memories']  = $this->getMarks();
         $data['proc_load'] = !in_array('sys_getloadavg', $disabled_functions)
@@ -374,24 +370,28 @@ class Profiler
         $data['declared_classes']  = get_declared_classes();
         $data['defined_functions'] = get_defined_functions();
 
-        $dbqueries = \App::$CI->db->queries;
-        $dbtimes   = \App::$CI->db->query_times;
-        $dbcaches  = \App::$CI->db->query_caches;
-        $dbcalls   = \App::$CI->db->query_calls;
+        if (!empty(\App::$CI->db)) {
+            $dbqueries = \App::$CI->db->queries;
+            $dbtimes   = \App::$CI->db->query_times;
+            $dbcaches  = \App::$CI->db->query_caches;
+            $dbcalls   = \App::$CI->db->query_calls;
+        }
 
         $queries = array();
-        foreach ($dbqueries as $k => $q) {
-            $time            = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
-            $cached          = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
-            $call            = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
-            $query           = array();
-            $query['query']  = $q;
-            $query['time']   = $time;
-            $query['cached'] = $cached;
-            $query['file']   = $call['file'];
-            $query['line']   = $call['line'];
-            $query['stack']  = $call['stack'];
-            $queries[]       = $query;
+        if (!empty($dbqueries)) {
+            foreach ($dbqueries as $k => $q) {
+                $time            = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
+                $cached          = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
+                $call            = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
+                $query           = array();
+                $query['query']  = $q;
+                $query['time']   = $time;
+                $query['cached'] = $cached;
+                $query['file']   = $call['file'];
+                $query['line']   = $call['line'];
+                $query['stack']  = $call['stack'];
+                $queries[]       = $query;
+            }
         }
         $data['queries'] = $queries;
 
@@ -449,12 +449,12 @@ class Profiler
 
         $data['php']['version']          = @phpversion();
         $data['mysql']['client_version'] = @mysql_get_client_info();
-        $data['mysql']['server_version'] = \App::$CI->db->version();
+        $data['mysql']['server_version'] = !empty(\App::$CI->db) ? \App::$CI->db->version() : 'unknown';
 
-        $config = get_config();
+        $config = is_callable('\get_config') ? \get_config() : [];
 
         $data['config']['main']    = $config;
-        $data['config']['project'] = \App::$CI->conf->getData();
+        $data['config']['project'] = !empty(\App::$CI->conf) ? \App::$CI->conf->getData() : [];
 
         ob_start();
         @phpinfo();
@@ -485,8 +485,7 @@ class Profiler
             $data['cache']['version'] = \App::$CI->cache_obj->getVersion();
         }
 
-        $session_id         = \App::$CI->session->getId();
-        $data['session_id'] = $session_id;
+        $data['session_id'] = session_id();
         $this->data         = &$data;
         $this->set($microtime, $data);
         return $this;
@@ -503,15 +502,16 @@ class Profiler
     public function set($microtime, $data)
     {
         if ('session' == $this->driver) {
-            $sesdata             = \App::$CI->session->get('debug', array());
+            $sesdata             = !empty($_SESSION['debug']) ? $_SESSION['debug'] : [];
             $sesdata[$microtime] = $data;
             $count               = count($sesdata);
             if ($count > $this->history_count) {
                 $sesdata = array_slice($sesdata, $count - $this->history_count);
             }
-            $status = \App::$CI->session->set('debug', $sesdata);
+            $_SESSION['debug'] = $sesdata;
+            $status = true;
         } else {
-            $session_id = \App::$CI->session->getId();
+            $session_id = session_id();
             if (empty($session_id)) {
                 return false;
             }
@@ -601,9 +601,9 @@ class Profiler
 
         $data = array();
         if ('session' == $this->driver) {
-            $data = \App::$CI->session->get('debug', array());
+            $data = !empty($_SESSION['debug']) ? $_SESSION['debug'] : [];
         } else {
-            $session_id = \App::$CI->session->getId();
+            $session_id = session_id();
 
             $logdata_path = $this->getLogdataPath();
             if (!$logdata_path) {
