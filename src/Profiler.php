@@ -461,8 +461,7 @@ class Profiler
         $phpinfo                   = ob_get_clean();
         $data['config']['phpinfo'] = $phpinfo;
 
-        $data['config']['uname'] = !in_array('php_uname', $disabled_functions)
-        ? php_uname() : 'UNKNOWN';
+        $data['config']['uname'] = !in_array('php_uname', $disabled_functions) ? php_uname() : 'UNKNOWN';
 
         $data['config']['server']['phpversion'] = $data['php']['version'];
         $data['config']['server']['xdebug']     = extension_loaded('xdebug');
@@ -480,8 +479,8 @@ class Profiler
 
         $data['cache'] = array();
         if (!empty(\App::$CI->cache_obj)) {
-            $data['cache']['adapter'] = \App::$CI->cache_obj->getType();
-            $data['cache']['info']    = \App::$CI->cache_obj->cache_info();
+            $data['cache']['adapter'] = \App::$CI->cache_obj->getProvider();
+            $data['cache']['info']    = \App::$CI->cache_obj->getStats();
             $data['cache']['version'] = \App::$CI->cache_obj->getVersion();
         }
 
