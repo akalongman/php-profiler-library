@@ -324,10 +324,13 @@ class Profiler
             $this->gc();
         }
 
-        if (empty(\App::$CI)) {
+
+        $controller = app('controller');
+
+        if (empty($controller)) {
             return false;
         }
-        if ('debug' == \App::$CI->router->class) {
+        if ('debug' == $controller->router->class) {
             return false;
         }
         if (!empty($this->data)) {
@@ -352,7 +355,7 @@ class Profiler
             return false;
         }
 
-        $data['user'] = !empty(\App::$CI->user) ? \App::$CI->user->getData(true, true) : array();
+        $data['user'] = !empty($controller->user) ? $controller->user->getData(true, true) : array();
 
         $data['date']           = (new \DateTime())->format('Y-m-d H:i:s');
         $data['ip']             = $_SERVER['REMOTE_ADDR'];
@@ -370,11 +373,11 @@ class Profiler
         $data['declared_classes']  = get_declared_classes();
         $data['defined_functions'] = get_defined_functions();
 
-        if (!empty(\App::$CI->db)) {
-            $dbqueries = \App::$CI->db->queries;
-            $dbtimes   = \App::$CI->db->query_times;
-            $dbcaches  = \App::$CI->db->query_caches;
-            $dbcalls   = \App::$CI->db->query_calls;
+        if (!empty($controller->db)) {
+            $dbqueries = $controller->db->queries;
+            $dbtimes   = $controller->db->query_times;
+            $dbcaches  = $controller->db->query_caches;
+            $dbcalls   = $controller->db->query_calls;
         }
 
         $queries = array();
@@ -396,7 +399,7 @@ class Profiler
         $data['queries'] = $queries;
 
         $data['txts']                 = array();
-        $data['txts']['lang']         = \App::$CI->lang_abbr;
+        $data['txts']['lang']         = $controller->lang_abbr;
         $data['txts']['untranslated'] = $this->untranslated_txts;
 
         $data['environment']['post']   = $_POST;
@@ -440,8 +443,8 @@ class Profiler
 
         $data['source'] = $this->source;
 
-        $data['controller']    = \App::$CI->router->class;
-        $data['method']        = \App::$CI->router->method;
+        $data['controller']    = $controller->router->class;
+        $data['method']        = $controller->router->method;
         $data['tpl_files']     = $this->tpl_files;
         $data['view_files']    = $this->view_files;
         $data['wrapper_files'] = $this->wrapper_files;
@@ -449,12 +452,12 @@ class Profiler
 
         $data['php']['version']          = @phpversion();
         $data['mysql']['client_version'] = @mysql_get_client_info();
-        $data['mysql']['server_version'] = !empty(\App::$CI->db) ? \App::$CI->db->version() : 'unknown';
+        $data['mysql']['server_version'] = !empty($controller->db) ? $controller->db->version() : 'unknown';
 
         $config = is_callable('\get_config') ? \get_config() : [];
 
         $data['config']['main']    = $config;
-        $data['config']['project'] = !empty(\App::$CI->conf) ? \App::$CI->conf->getData() : [];
+        $data['config']['project'] = !empty($controller->conf) ? $controller->conf->getData() : [];
 
         ob_start();
         @phpinfo();
@@ -478,10 +481,10 @@ class Profiler
         $data['cms']['branch']  = $config['branch'];
 
         $data['cache'] = array();
-        if (!empty(\App::$CI->cache_obj)) {
-            $data['cache']['adapter'] = \App::$CI->cache_obj->getProvider();
-            $data['cache']['info']    = \App::$CI->cache_obj->getStats();
-            $data['cache']['version'] = \App::$CI->cache_obj->getVersion();
+        if (!empty($controller->cache_obj)) {
+            $data['cache']['adapter'] = $controller->cache_obj->getProvider();
+            $data['cache']['info']    = $controller->cache_obj->getStats();
+            $data['cache']['version'] = $controller->cache_obj->getVersion();
         }
 
         $data['session_id'] = session_id();
