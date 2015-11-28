@@ -9,6 +9,7 @@
  */
 namespace Longman\ProfilerLibrary;
 
+use InvalidArgumentException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -597,7 +598,7 @@ class Profiler
         if (!$this->getDebugMode()) {
             return false;
         }
-        if (empty(\App::$CI)) {
+        if (empty(app('controller'))) {
             return false;
         }
 
@@ -616,12 +617,19 @@ class Profiler
             $folder     = $logdata_path . '/debug/' . $session_id;
 
             $finder = new Finder();
+            try {
+                $iterator = $finder
+                    ->files()
+                    ->name('*.data')
+                    ->depth(0)
+                    ->in($folder);
 
-            $iterator = $finder
-                ->files()
-                ->name('*.data')
-                ->depth(0)
-                ->in($folder);
+            }
+            catch(InvalidArgumentException $e) {
+                trigger_error($e->getMessage());
+                // log error
+                return array();
+            }
 
             if ($iterator->count() == 0) {
                 return array();
