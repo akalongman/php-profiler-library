@@ -476,9 +476,9 @@ class Profiler
         $data['config']['server']['mysql']      = function_exists('mysql_connect');
         $data['config']['server']['pdo']        = class_exists('PDO');
 
-        $data['cms']['version'] = $config['version']['name'];
-        $data['cms']['code']    = $config['version']['code'];
-        $data['cms']['branch']  = $config['branch'];
+        $data['cms']['version'] = isset($config['version']['name']) ? $config['version']['name'] : '';
+        $data['cms']['code']    = isset($config['version']['code']) ? $config['version']['code'] : '';
+        $data['cms']['branch']  = isset($config['branch']) ? $config['branch'] : '';
 
         $data['cache'] = array();
         if (!empty($controller->cache_obj)) {
