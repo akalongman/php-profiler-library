@@ -622,9 +622,8 @@ class Profiler
                     ->name('*.data')
                     ->depth(0)
                     ->in($folder);
-
             }
-            catch(InvalidArgumentException $e) {
+            catch (InvalidArgumentException $e) {
                 trigger_error($e->getMessage());
                 // log error
                 return array();
