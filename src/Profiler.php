@@ -356,7 +356,7 @@ class Profiler
             return false;
         }
 
-        $data['user'] = !empty($controller->user) ? $controller->user->getData(true, true) : array();
+        $data['user'] = !empty($controller->user) ? $controller->user->getData() : array();
 
         $data['date']           = (new \DateTime())->format('Y-m-d H:i:s');
         $data['ip']             = $_SERVER['REMOTE_ADDR'];
