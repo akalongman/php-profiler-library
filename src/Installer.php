@@ -66,6 +66,7 @@ abstract class Installer
         if ($name !== 'longman/profiler-library') {
             return false;
         }
+        $installationManager = $event->getComposer()->getInstallationManager();
         $originDir = $installationManager->getInstallPath($package);
         return $originDir;
     }
