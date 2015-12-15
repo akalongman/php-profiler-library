@@ -9,29 +9,83 @@
  */
 namespace Longman\ProfilerLibrary;
 
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
-use Composer\Script\Event;
 use Composer\Installer\PackageEvent;
+use Symfony\Component\Filesystem\Filesystem;
 
 abstract class Installer
 {
 
-
-
-    public static function postUpdate(Event $event)
+    public static function postUpdate(PackageEvent $event)
     {
-        echo 'postUpdate';
+        self::copyResources($event);
 
     }
 
-    public static function postPackageInstall(PackageEvent $event)
+    public static function postInstall(PackageEvent $event)
     {
-        echo 'postPackageInstall';
-
+        self::copyResources($event);
 
     }
 
+    public static function preUninstall(PackageEvent $event)
+    {
+        self::deleteResources($event);
 
+    }
+
+    public static function copyResources(PackageEvent $event)
+    {
+        $packagePath = self::getPackagePath($event);
+        if (!$packagePath) {
+            return false;
+        }
+
+        $rootPath = self::getRootPath($event);
+
+        $status = self::copyController($packagePath, $rootPath);
+    }
+
+    public static function deleteResources(PackageEvent $event)
+    {
+        $packagePath = self::getPackagePath($event);
+        if (!$packagePath) {
+            return false;
+        }
+
+        $rootPath = self::getRootPath($event);
+
+        $status = self::deleteController($packagePath, $rootPath);
+    }
+
+
+
+    private static function getPackagePath($event)
+    {
+        $package = $event->getOperation()->getPackage();
+        $name = $package->getName();
+        if ($name !== 'longman/profiler-library') {
+            return false;
+        }
+        $originDir = $installationManager->getInstallPath($package);
+        return $originDir;
+    }
+
+    private static function copyController($packagePath, $rootPath)
+    {
+        return copy($packagePath.'/src/Packages/itdcms/debug1.php', $rootPath.'/core/controllers/itdc/debug1.php');
+    }
+
+    private static function deleteController($rootPath)
+    {
+        return unlink($rootPath.'/core/controllers/itdc/debug1.php');
+    }
+
+
+
+    private static function getRootPath(PackageEvent $event)
+    {
+        $vendorPath = $event->getComposer()->getConfig()->get('vendor-dir');
+        return realpath($vendorPath.'/..');
+    }
 
 }
