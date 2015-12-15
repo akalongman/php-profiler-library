@@ -73,12 +73,12 @@ abstract class Installer
 
     private static function copyController($packagePath, $rootPath)
     {
-        return copy($packagePath.'/src/Packages/itdcms/debug1.php', $rootPath.'/core/controllers/itdc/debug1.php');
+        return @copy($packagePath.'/src/Packages/itdcms/debug1.php', $rootPath.'/core/controllers/itdc/debug1.php');
     }
 
     private static function deleteController($rootPath)
     {
-        return unlink($rootPath.'/core/controllers/itdc/debug1.php');
+        return @unlink($rootPath.'/core/controllers/itdc/debug1.php');
     }
 
 
