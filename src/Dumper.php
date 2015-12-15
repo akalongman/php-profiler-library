@@ -9,8 +9,7 @@
  */
 namespace Longman\ProfilerLibrary;
 
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
+use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 
 /**
  * @package    ProfilerLibrary
@@ -21,85 +20,28 @@ use Symfony\Component\Finder\Finder;
  */
 
 
-
-/**
- * Dumper is intended to replace the buggy PHP function var_dump and print_r.
- * It can correctly identify the recursively referenced objects in a complex
- * object structure. It also has a recursive depth control to avoid indefinite
- * recursive display of some peculiar variables.
- *
- * Dumper can be used as follows,
- *
- * ~~~
- * Dumper::dump($var);
- * ~~~
- */
-class Dumper
+class Dumper extends HtmlDumper
 {
-    private static $objects;
-    private static $output;
-    private static $depth;
-    private static $type;
-
     /**
-     * Displays a variable.
-     * This method achieves the similar functionality as var_dump and print_r
-     * but is more robust when handling complex objects such as Yii controllers.
-     * @param mixed   $var       variable to be dumped
-     * @param integer $depth     maximum depth that the dumper should go into the variable.
-     *                           Defaults to 10.
-     * @param boolean $highlight whether the result should be syntax-highlighted
+     * Colour definitions for output.
+     *
+     * @var array
      */
-    public static function dump($var, $depth = 10, $highlight = false)
-    {
-        echo self::getDump($var, $depth, $highlight);
-    }
-
-
-    /**
-     * Returns a dump data.
-     * This method achieves the similar functionality as var_dump and print_r
-     * but is more robust when handling complex objects such as Yii controllers.
-     * @param mixed   $var       variable to be dumped
-     * @param integer $depth     maximum depth that the dumper should go into the variable.
-     *                           Defaults to 10.
-     * @param boolean $highlight whether the result should be syntax-highlighted
-     */
-    public static function getDump($var, $depth = 10, $highlight = false)
-    {
-        return static::dumpAsString($var, $depth, $highlight);
-    }
-
-
-
-    /**
-     * Dumps a variable in terms of a string.
-     * This method achieves the similar functionality as var_dump and print_r
-     * but is more robust when handling complex objects such as Yii controllers.
-     * @param mixed   $var       variable to be dumped
-     * @param integer $depth     maximum depth that the dumper should go into the variable.
-     *                           Defaults to 10.
-     * @param boolean $highlight whether the result should be syntax-highlighted
-     * @return string the string representation of the variable
-     */
-    public static function dumpAsString($var, $depth = 10, $highlight = false)
-    {
-        self::$output = '';
-        self::$objects = array();
-        self::$depth = !empty($depth) ? $depth : 10;
-        self::dumpInternal($var, 0);
-        if ($highlight) {
-            // replace comments with tokens
-            $array_replaces = array('/*', '//');
-            $array_tokens = array('|***|***|', '|**|**|');
-
-            self::$output = str_replace($array_replaces, $array_tokens, self::$output);
-            self::$output = self::highlight(self::$output);
-            self::$output = str_replace($array_tokens, $array_replaces, self::$output);
-        }
-        return self::$output;
-    }
-
+    protected $styles = [
+        'default' => 'background-color:#fff; color:#222; line-height:1.2em; font-weight:normal; font:14px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000',
+        'num' => 'color:#a71d5d',
+        'const' => 'color:#795da3',
+        'str' => 'color:#df5000',
+        'cchr' => 'color:#222',
+        'note' => 'color:#a71d5d',
+        'ref' => 'color:#a0a0a0',
+        'public' => 'color:#795da3',
+        'protected' => 'color:#795da3',
+        'private' => 'color:#795da3',
+        'meta' => 'color:#b729d9',
+        'key' => 'color:#df5000',
+        'index' => 'color:#a71d5d',
+    ];
 
     public static function highlight($string)
     {
@@ -108,84 +50,5 @@ class Dumper
         return $result;
     }
 
-    /**
-     * @param mixed   $var   variable to be dumped
-     * @param integer $level depth level
-     */
-    private static function dumpInternal($var, $level)
-    {
-        $type = gettype($var);
-        self::$type = $type;
-        switch ($type) {
-            case 'boolean':
-                self::$output .= $var ? 'true' : 'false';
-                break;
-            case 'integer':
-                self::$output .= "$var";
-                break;
-            case 'double':
-                self::$output .= "$var";
-                break;
-            case 'string':
-                //self::$output .= "'" . addslashes($var) . "'";
-                self::$output .= $var;
-                break;
-            case 'resource':
-                self::$output .= '{resource}';
-                break;
-            case 'NULL':
-                self::$output .= "null";
-                break;
-            case 'unknown type':
-                self::$output .= '{unknown}';
-                break;
-            case 'array':
-                if (self::$depth <= $level) {
-                    self::$output .= '[...]';
-                } elseif (empty($var)) {
-                    self::$output .= '[]';
-                } else {
-                    $keys = array_keys($var);
-                    $spaces = str_repeat(' ', $level * 4);
-                    self::$output .= '[';
-                    foreach ($keys as $key) {
-                        self::$output .= "\n" . $spaces . '    ';
-                        self::dumpInternal($key, 0);
-                        self::$output .= ' => ';
-                        self::dumpInternal($var[$key], $level + 1);
-                    }
-                    self::$output .= "\n" . $spaces . ']';
-                }
-                break;
-            case 'object':
-                if (($id = array_search($var, self::$objects, true)) !== false) {
-                    self::$output .= get_class($var) . '#' . ($id + 1) . '(...)';
-                } elseif (self::$depth <= $level) {
-                    self::$output .= get_class($var) . '(...)';
-                } else {
-                    $id = array_push(self::$objects, $var);
-                    $className = get_class($var);
-                    $spaces = str_repeat(' ', $level * 4);
-                    self::$output .= "$className#$id\n" . $spaces . '(';
-                    if (method_exists($var, 'toArray')) {
-                        $ar_var = $var->toArray();
-                    } else {
-                        $ar_var = (array)$var;
-                    }
 
-                    foreach ($ar_var as $key => $value) {
-                        $keyDisplay = strtr(trim($key), array("\0" => ':'));
-                        self::$output .= "\n" . $spaces . "    [$keyDisplay] => ";
-                        self::dumpInternal($value, $level + 1);
-                    }
-                    self::$output .= "\n" . $spaces . ')';
-                }
-                break;
-        }
-    }
-
-    public static function getType()
-    {
-        return self::$type;
-    }
 }
