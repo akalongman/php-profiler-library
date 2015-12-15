@@ -13,6 +13,7 @@ use InvalidArgumentException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * @package    ProfilerLibrary
@@ -83,6 +84,10 @@ class Profiler
 
     protected $filesystem = null; // symfony filesystem object
 
+
+    protected $session = null;
+
+
     private function __construct($prefix, $config)
     {
         $this->start             = microtime(1);
@@ -121,6 +126,13 @@ class Profiler
                 }
             }
         }
+        return $this;
+    }
+
+    public function setSession($session)
+    {
+        $this->session = $session;
+
         return $this;
     }
 
@@ -487,9 +499,9 @@ class Profiler
             $data['cache']['version'] = $controller->cache_obj->getVersion();
         }
 
-        $data['session_id'] = session_id();
+        $data['session_id'] = $this->session->getId();
         $this->data         = &$data;
-        $this->set($microtime, $data);
+        $this->save($microtime, $data);
         return $this;
     }
 
@@ -501,19 +513,20 @@ class Profiler
         return $microtime;
     }
 
-    public function set($microtime, $data)
+    protected function save($microtime, $data)
     {
         if ('session' == $this->driver) {
-            $sesdata             = !empty($_SESSION['debug']) ? $_SESSION['debug'] : [];
+            $sesdata             = $this->session->get('debug', []);
+
             $sesdata[$microtime] = $data;
             $count               = count($sesdata);
             if ($count > $this->history_count) {
                 $sesdata = array_slice($sesdata, $count - $this->history_count);
             }
-            $_SESSION['debug'] = $sesdata;
+            $this->session->get('debug', $sesdata);
             $status = true;
         } else {
-            $session_id = session_id();
+            $session_id = $this->session->getId();
             if (empty($session_id)) {
                 return false;
             }
@@ -592,7 +605,7 @@ class Profiler
         return $data;
     }*/
 
-    public function getDebugInfo()
+    public function getDebugData()
     {
         if (!$this->getDebugMode()) {
             return false;
@@ -605,7 +618,7 @@ class Profiler
         if ('session' == $this->driver) {
             $data = !empty($_SESSION['debug']) ? $_SESSION['debug'] : [];
         } else {
-            $session_id = session_id();
+            $session_id = $this->session->getId();
 
             $logdata_path = $this->getLogdataPath();
             if (!$logdata_path) {
