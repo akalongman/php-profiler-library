@@ -11,6 +11,7 @@ namespace Longman\ProfilerLibrary;
  * file that was distributed with this source code.
  */
 
+use Exception;
 use DateTime;
 use InvalidArgumentException;
 use Longman\ProfilerLibrary\Exception\ProfilerException;
@@ -18,7 +19,6 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\VarDumper\Cloner\VarCloner;
 
 /**
  * @package    ProfilerLibrary
@@ -96,8 +96,6 @@ class Profiler
 
     protected $dont_track = false;
 
-    protected $cloner;
-    protected $dumper;
 
     private function __construct($prefix, $config)
     {
@@ -113,8 +111,6 @@ class Profiler
         $this->logs              = array();
         $this->prefix            = $prefix;
         $this->filesystem        = new Filesystem();
-        $this->cloner            = new VarCloner();
-        $this->dumper            = new Dumper();
 
         if ($config) {
             $this->setConfig($config);
@@ -310,26 +306,11 @@ class Profiler
             return false;
         }
 
-        $output = '';
-
-        $this->dumper->dump(
-            $this->cloner->cloneVar($data),
-            function ($line, $depth) use (&$output) {
-                // A negative depth means "end of dump"
-                if ($depth >= 0) {
-                    // Adds a two spaces indentation to the line
-                    $output .= str_repeat('  ', $depth) . $line . "\n";
-                }
-            }
-        );
-
-        //$fdata = Dumper::getDump($data, $depth, true);
-        //var_dump($fdata);
-
+        $output = Dumper::doDump($data);
 
         $type = gettype($data);
 
-        $exception = new \Exception();
+        $exception = new Exception();
         $trace     = $exception->getTrace();
         $curtrace  = !empty($trace[1]) ? $trace[1] : array();
         $file      = isset($curtrace['file']) ? $curtrace['file'] : '';
