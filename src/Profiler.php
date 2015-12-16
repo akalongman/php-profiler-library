@@ -60,7 +60,7 @@ class Profiler
 
     protected static $instances = array();
 
-    protected $history_count = 10;
+    protected $history_count = 20;
 
     protected $data = array();
 
@@ -577,55 +577,6 @@ class Profiler
         return $status;
     }
 
-/*    public function get($key = 0)
-{
-if (!$this->getDebugMode()) {
-return false;
-}
-if (empty(\App::$CI)) {
-return false;
-}
-
-$data = array();
-if ('session' == $this->driver) {
-$data = \App::$CI->session->get('debug', array());
-} else {
-$session_id = App::$CI->session->getId();
-$folder     = DATAPATH . 'logs/debug/' . $session_id;
-
-$finder = new Finder();
-
-$iterator = $finder
-->files()
-->name('*.data')
-->depth(0)
-->in($folder);
-
-if ($iterator->count() == 0) {
-return array();
-}
-var_dump($iterator);
-die;
-
-$files = $iterator->toArray();
-
-if ($key) {
-$index = array_search($key . '.data', $files);
-if (!empty($files[$index])) {
-$file = $files[$index];
-}
-} else {
-$file = end($files);
-}
-
-$file = $folder . '/' . $file;
-if (file_exists($file)) {
-$data = file_get_contents($file);
-$data = $this->decode($data);
-}
-}
-return $data;
-}*/
 
     public function getDebugData()
     {
@@ -653,7 +604,7 @@ return $data;
                 ->depth(0)
                 ->in($folder);
         } catch (InvalidArgumentException $e) {
-            throw new ProfilerException($e->getMessage());
+            return [];
         }
 
         if ($iterator->count() == 0) {

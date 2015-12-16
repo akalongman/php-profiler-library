@@ -27,21 +27,20 @@ class Dumper extends HtmlDumper
      *
      * @var array
      */
-    protected $styles = [
-        'default'   => 'background-color:#fff; color:#222; line-height:1.2em; font-weight:normal; font:14px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000',
-        'num'       => 'color:#a71d5d',
-        'const'     => 'color:#795da3',
-        'str'       => 'color:#df5000',
-        'cchr'      => 'color:#222',
-        'note'      => 'color:#a71d5d',
-        'ref'       => 'color:#a0a0a0',
-        'public'    => 'color:#795da3',
-        'protected' => 'color:#795da3',
-        'private'   => 'color:#795da3',
-        'meta'      => 'color:#b729d9',
-        'key'       => 'color:#df5000',
-        'index'     => 'color:#a71d5d',
-    ];
+    protected $styles = array(
+        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:14px Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000; word-break: normal',
+        'num' => 'color:#00C0F0',
+        'const' => 'color:#0090F0',
+        'str' => 'color:#F080F0',
+        'note' => 'color:#1299DA',
+        'ref' => 'color:#A0A0A0',
+        'public' => 'color:#FFFFFF',
+        'protected' => 'color:#FFFFFF',
+        'private' => 'color:#FFFFFF',
+        'meta' => 'color:#B729D9',
+        'key' => 'color:#56DB3A',
+        'index' => 'color:#1299DA',
+    );
 
     private static $dumper;
     private static $cloner;
