@@ -19,6 +19,7 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @package    ProfilerLibrary
@@ -68,7 +69,7 @@ class Profiler
 
     protected $driver = 'file'; // file or session
 
-    protected $gcFreq = 1; // garbage collector frequency
+    protected $gcFreq = 10; // garbage collector frequency
 
     protected $expiration = 86400; // folder lifetime
 
@@ -88,7 +89,9 @@ class Profiler
 
     protected $filesystem = null; // symfony filesystem object
 
-    protected $request = null; // symfony request object
+    protected $request = null; // symfony Request object
+
+    protected $response = null; // symfony Response object
 
     protected $cache = null; // cache object
 
@@ -138,6 +141,14 @@ class Profiler
         $this->request = $request;
         return $this;
     }
+
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
+        return $this;
+    }
+
+
 
     public function setCache($cache)
     {
@@ -428,23 +439,26 @@ class Profiler
             $dbcalls   = $controller->db->query_calls;
         }
 
+
+
         $queries = [];
         if (!empty($dbqueries)) {
             foreach ($dbqueries as $k => $q) {
                 $time            = isset($dbtimes[$k]) ? $dbtimes[$k] : 0;
-                $cached          = isset($dbcaches[$k]) ? $dbcaches[$k] : 0;
-                $call            = isset($dbcalls[$k]) ? $dbcalls[$k] : 0;
+                $cached          = isset($dbcaches[$k]) ? $dbcaches[$k] : false;
+                $call            = isset($dbcalls[$k]) ? $dbcalls[$k] : [];
                 $query           = array();
                 $query['query']  = $q;
                 $query['time']   = $time;
                 $query['cached'] = $cached;
-                $query['file']   = $call['file'];
-                $query['line']   = $call['line'];
-                $query['stack']  = $call['stack'];
+                $query['file']   = isset($call['file']) ? $call['file'] : 'unknown';
+                $query['line']   = isset($call['line']) ? $call['line'] : 0;
+                $query['stack']  = isset($call['stack']) ? $call['stack'] : [];
                 $queries[]       = $query;
             }
         }
         $data['queries'] = $queries;
+
 
         $data['txts']                 = [];
         $data['txts']['lang']         = !empty($controller->lang_abbr) ? $controller->lang_abbr : '';
@@ -456,34 +470,11 @@ class Profiler
         $data['environment']['server'] = $this->request->server->all();
         $data['environment']['files']  = $this->request->files->all();
 
-        // request headers
-        $requestHeaders = $this->request->headers->all();
-
-        // response headers
-        $responseHeaders = array();
-        foreach (headers_list() as $header) {
-            if (($pos = strpos($header, ':')) !== false) {
-                $name  = substr($header, 0, $pos);
-                $value = trim(substr($header, $pos + 1));
-                if (isset($responseHeaders[$name])) {
-                    if (!is_array($responseHeaders[$name])) {
-                        $responseHeaders[$name] = array($responseHeaders[$name], $value);
-                    } else {
-                        $responseHeaders[$name][] = $value;
-                    }
-                } else {
-                    $responseHeaders[$name] = $value;
-                }
-            } else {
-                $responseHeaders[] = $header;
-            }
-        }
-
         $data['headers']             = array();
-        $data['headers']['request']  = $requestHeaders;
-        $data['headers']['response'] = $responseHeaders;
+        $data['headers']['request']  = $this->request->headers->all();
+        $data['headers']['response'] = !empty($this->response) ? $this->response->headers->all() : [];
 
-        $data['source'] = $this->source;
+        $data['source'] = !empty($this->response) ? $this->response->getContent() : '';
 
         $data['controller']    = $controller->router->class;
         $data['method']        = $controller->router->method;
