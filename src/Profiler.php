@@ -11,8 +11,8 @@ namespace Longman\ProfilerLibrary;
  * file that was distributed with this source code.
  */
 
-use Exception;
 use DateTime;
+use Exception;
 use InvalidArgumentException;
 use Longman\ProfilerLibrary\Exception\ProfilerException;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -99,7 +99,6 @@ class Profiler
 
     protected $dont_track = false;
 
-
     private function __construct($prefix, $config)
     {
         $this->start             = microtime(true);
@@ -135,7 +134,6 @@ class Profiler
         $this->start = $time;
         $this->mark('Initialize', $time, 0);
 
-
         return $this;
     }
 
@@ -150,8 +148,6 @@ class Profiler
         $this->response = $response;
         return $this;
     }
-
-
 
     public function setCache($cache)
     {
@@ -441,8 +437,6 @@ class Profiler
             $dbcalls   = $controller->db->query_calls;
         }
 
-
-
         $queries = [];
         if (!empty($dbqueries)) {
             foreach ($dbqueries as $k => $q) {
@@ -460,7 +454,6 @@ class Profiler
             }
         }
         $data['queries'] = $queries;
-
 
         $data['txts']                 = [];
         $data['txts']['lang']         = !empty($controller->lang_abbr) ? $controller->lang_abbr : '';
@@ -515,8 +508,8 @@ class Profiler
         $data['cms']['branch']  = isset($config['branch']) ? $config['branch'] : '';
 
         $data['cache'] = array();
+        $data['cache']['driver'] = $config['cache']['default'];
         if (!empty($controller->cache_obj)) {
-            $data['cache']['adapter'] = $config['cache']['default'];
             $data['cache']['info']    = ''; //$controller->cache_obj->getStats();
             $data['cache']['version'] = ''; //$controller->cache_obj->getVersion();
         }
@@ -560,7 +553,40 @@ class Profiler
 
         $encoded_data = $this->encode($data);
         if (!empty($data) && empty($encoded_data)) {
-            throw new ProfilerException('json_encode data problem');
+            switch (json_last_error()) {
+                case JSON_ERROR_NONE:
+                    $msg = ' - No errors';
+                    break;
+                case JSON_ERROR_DEPTH:
+                    $msg = ' - Maximum stack depth exceeded';
+                    break;
+                case JSON_ERROR_STATE_MISMATCH:
+                    $msg = ' - Underflow or the modes mismatch';
+                    break;
+                case JSON_ERROR_CTRL_CHAR:
+                    $msg = ' - Unexpected control character found';
+                    break;
+                case JSON_ERROR_SYNTAX:
+                    $msg = ' - Syntax error, malformed JSON';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $msg = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+                    break;
+                case JSON_ERROR_RECURSION:
+                    $msg = ' - One or more recursive references in the value to be encoded';
+                    break;
+                case JSON_ERROR_INF_OR_NAN:
+                    $msg = ' - One or more NAN or INF values in the value to be encoded';
+                    break;
+                case JSON_ERROR_UNSUPPORTED_TYPE:
+                    $msg = ' - A value of a type that cannot be encoded was given';
+                    break;
+                default:
+                    $msg = ' - Unknown error';
+                    break;
+            }
+
+            throw new ProfilerException('json_encode data problem! Error: '.$msg);
         }
         $status = file_put_contents($folder . '/' . $file_name, $encoded_data);
         if (!$status) {
@@ -569,7 +595,6 @@ class Profiler
 
         return $status;
     }
-
 
     public function getDebugData()
     {
