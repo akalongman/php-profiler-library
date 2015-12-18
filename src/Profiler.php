@@ -133,6 +133,9 @@ class Profiler
     public function setStartTime($time)
     {
         $this->start = $time;
+        $this->mark('Initialize', $time, 0);
+
+
         return $this;
     }
 
@@ -206,14 +209,14 @@ class Profiler
         return $this->panel_enabled;
     }
 
-    public function mark($label)
+    public function mark($label, $time = null, $memory = null)
     {
         if (!$this->getDebugMode()) {
             return false;
         }
 
-        $current    = microtime(true) - $this->start;
-        $currentMem = memory_get_peak_usage(true);
+        $current    = !is_null($time) ? $time - $this->start : microtime(true) - $this->start;
+        $currentMem = !is_null($memory) ? $memory : memory_get_peak_usage(true);
 
         $m = array(
             'prefix'      => $this->prefix,
@@ -236,7 +239,6 @@ class Profiler
             $m['memory'],
             $m['label']
         );
-        //$this->memories[] = $mark;
 
         $this->previousTime = $current;
         $this->previousMem  = $currentMem;
