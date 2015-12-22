@@ -552,42 +552,7 @@ class Profiler
         $file_name = $microtime . '.data';
 
         $encoded_data = $this->encode($data);
-        if (!empty($data) && empty($encoded_data)) {
-            switch (json_last_error()) {
-                case JSON_ERROR_NONE:
-                    $msg = ' - No errors';
-                    break;
-                case JSON_ERROR_DEPTH:
-                    $msg = ' - Maximum stack depth exceeded';
-                    break;
-                case JSON_ERROR_STATE_MISMATCH:
-                    $msg = ' - Underflow or the modes mismatch';
-                    break;
-                case JSON_ERROR_CTRL_CHAR:
-                    $msg = ' - Unexpected control character found';
-                    break;
-                case JSON_ERROR_SYNTAX:
-                    $msg = ' - Syntax error, malformed JSON';
-                    break;
-                case JSON_ERROR_UTF8:
-                    $msg = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
-                    break;
-                case JSON_ERROR_RECURSION:
-                    $msg = ' - One or more recursive references in the value to be encoded';
-                    break;
-                case JSON_ERROR_INF_OR_NAN:
-                    $msg = ' - One or more NAN or INF values in the value to be encoded';
-                    break;
-                case JSON_ERROR_UNSUPPORTED_TYPE:
-                    $msg = ' - A value of a type that cannot be encoded was given';
-                    break;
-                default:
-                    $msg = ' - Unknown error';
-                    break;
-            }
 
-            throw new ProfilerException('json_encode data problem! Error: '.$msg);
-        }
         $status = file_put_contents($folder . '/' . $file_name, $encoded_data);
         if (!$status) {
             throw new ProfilerException('Can not save profiling data in ' . $folder . '/' . $file_name);
@@ -661,14 +626,89 @@ class Profiler
     public function encode($data)
     {
         $data = json_encode($data,
-            JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
-             | JSON_BIGINT_AS_STRING | JSON_UNESCAPED_SLASHES);
+            JSON_UNESCAPED_UNICODE | JSON_BIGINT_AS_STRING | JSON_UNESCAPED_SLASHES);
+
+        $jsonError = json_last_error();
+
+        if ($jsonError != JSON_ERROR_NONE){
+            switch ($jsonError) {
+                case JSON_ERROR_DEPTH:
+                    $msg = ' - Maximum stack depth exceeded';
+                    break;
+                case JSON_ERROR_STATE_MISMATCH:
+                    $msg = ' - Underflow or the modes mismatch';
+                    break;
+                case JSON_ERROR_CTRL_CHAR:
+                    $msg = ' - Unexpected control character found';
+                    break;
+                case JSON_ERROR_SYNTAX:
+                    $msg = ' - Syntax error, malformed JSON';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $msg = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+                    break;
+                case JSON_ERROR_RECURSION:
+                    $msg = ' - One or more recursive references in the value to be encoded';
+                    break;
+                case JSON_ERROR_INF_OR_NAN:
+                    $msg = ' - One or more NAN or INF values in the value to be encoded';
+                    break;
+                case JSON_ERROR_UNSUPPORTED_TYPE:
+                    $msg = ' - A value of a type that cannot be encoded was given';
+                    break;
+                default:
+                    $msg = ' - Unknown error';
+                    break;
+            }
+
+            throw new ProfilerException('json_encode data problem! Error: '.$msg);
+        }
+
+
         return $data;
     }
 
     public function decode($data)
     {
         $data = json_decode($data, true);
+
+        $jsonError = json_last_error();
+
+        if ($jsonError != JSON_ERROR_NONE){
+            switch ($jsonError) {
+                case JSON_ERROR_DEPTH:
+                    $msg = ' - Maximum stack depth exceeded';
+                    break;
+                case JSON_ERROR_STATE_MISMATCH:
+                    $msg = ' - Underflow or the modes mismatch';
+                    break;
+                case JSON_ERROR_CTRL_CHAR:
+                    $msg = ' - Unexpected control character found';
+                    break;
+                case JSON_ERROR_SYNTAX:
+                    $msg = ' - Syntax error, malformed JSON';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $msg = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+                    break;
+                case JSON_ERROR_RECURSION:
+                    $msg = ' - One or more recursive references in the value to be encoded';
+                    break;
+                case JSON_ERROR_INF_OR_NAN:
+                    $msg = ' - One or more NAN or INF values in the value to be encoded';
+                    break;
+                case JSON_ERROR_UNSUPPORTED_TYPE:
+                    $msg = ' - A value of a type that cannot be encoded was given';
+                    break;
+                default:
+                    $msg = ' - Unknown error';
+                    break;
+            }
+
+            throw new ProfilerException('json_encode data problem! Error: '.$msg);
+        }
+
+
         return $data;
     }
 
@@ -726,36 +766,4 @@ class Profiler
         return $value;
     }
 
-    public function getPanel()
-    {
-        if (!$this->panelEnabled()) {
-            return false;
-        }
-
-        ob_start();
-        ?>
-        <style type="text/css">
-            #debug_panel {
-                position: fixed;
-                bottom: 0px;
-                left: 0px;
-                right: 0px;
-                width: 100%;
-                display: block;
-                border: 0;
-                height: 50px;
-                box-shadow: 0 0 10px grey;
-                z-index: 100000000;
-                /*opacity: 0.8;*/
-            }
-            body {
-                padding-bottom: 60px;
-            }
-        </style>
-
-        <iframe src="<?php echo site_url('itdc/debug/panel') ?>" id="debug_panel"></iframe>
-        <?php
-$html = ob_get_clean();
-        return $html;
-    }
 }
